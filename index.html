@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sureshot — All-in-One (Demo)</title>
+<style>
+  :root{--muted:#9fb0d6;--accent1:#00d2a8;--accent2:#00a6ff}
+  body{
+    margin:0;
+    font-family:Inter,Segoe UI,Arial,system-ui;
+    color:#fff;
+    background:url('eren-yeager.jpg') no-repeat center center fixed;
+    background-size:cover;
+  }
+  header{padding:18px;text-align:center;font-weight:800;font-size:1.2rem;letter-spacing:0.4px;text-shadow:0 2px 12px rgba(0,0,0,0.6)}
+  .wrap{max-width:980px;margin:18px auto;padding:18px}
+  .card{background:linear-gradient(180deg, rgba(0,0,0,0.62), rgba(0,0,0,0.55));border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 12px 40px rgba(0,0,0,0.6)}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+  .plan{padding:14px;border-radius:10px;background:rgba(255,255,255,0.02);text-align:left}
+  .plan b{display:block;font-size:1.05rem}
+  .btn{padding:10px 14px;border-radius:9px;border:none;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#012;font-weight:800;cursor:pointer}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+  input[type=text], input[type=file], select {padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:inherit;width:100%;margin-top:10px}
+  .qr{width:220px;height:220px;border-radius:12px;display:block;margin:12px auto;border:2px solid rgba(255,255,255,0.04);background:#fff;padding:6px}
+  .status{margin-top:10px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);font-weight:700;text-align:center}
+  .small{color:var(--muted);font-size:0.95rem}
+  .history{margin-top:12px;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;max-height:260px;overflow:auto}
+  .hidden{display:none}
+  footer{padding:14px;text-align:center;color:var(--muted);font-size:0.9rem}
+</style>
+</head>
+<body>
+<header>Sureshot — All-in-One (Dashboard · User · Access)</header>
+<div class="wrap">
+
+  <!-- DASHBOARD -->
+  <section id="screen-dashboard" class="card">
+    <h2>Choose a Loss-Recovery Plan</h2>
+    <div class="small">Click a plan to go to payment. Deposit shown = 10% of plan.</div>
+    <div class="plans" id="plansList"></div>
+  </section>
+
+  <!-- USER / PAYMENT -->
+  <section id="screen-user" class="card hidden">
+    <button class="btn ghost" onclick="goDashboard()" style="float:right">Back</button>
+    <h2>Unlock — Pay & Enter UTR</h2>
+    <!-- use the QR image file you placed in the same folder -->
+    <img id="qrImg" class="qr" src="your-qr.png" alt="QR Code">
+    <div class="small">Scan this QR with any UPI app (or click on mobile). This is a demo QR image.</div>
+
+    <div style="margin-top:12px">
+      <div class="small">Payable amount (deposit):</div>
+      <div id="userAmount" style="font-weight:800;font-size:1.3rem;margin-top:6px">₹0</div>
+    </div>
+
+    <input id="utrInput" type="text" maxlength="12" placeholder="Enter 12-digit UTR after payment">
+    <input id="fileUpload" type="file" accept="image/*">
+    <div style="margin-top:8px">
+      <button class="btn" id="confirmBtn" onclick="confirmPayment()">Confirm</button>
+    </div>
+    <div id="userStatus" class="status hidden"></div>
+  </section>
+
+  <!-- HACK PANEL -->
+  <section id="screen-access" class="card hidden">
+    <h2>Hack Opened — Prediction Panel</h2>
+    <p class="small">Target Range: <b id="targetRange"></b> | Balance: ₹<b id="balanceVal"></b></p>
+
+    <input id="periodInput" type="text" maxlength="3" placeholder="Enter last 3 digits of period (e.g. 256)">
+    <div style="margin-top:10px">
+      <button class="btn" onclick="getPrediction()">Get Prediction</button>
+      <button class="btn ghost" onclick="markWin()">Win</button>
+      <button class="btn ghost" onclick="markLoss()">Loss</button>
+      <button class="btn ghost" onclick="resetSession()">Reset</button>
+    </div>
+
+    <div id="predictionText" style="margin-top:12px;font-weight:800"></div>
+    <div class="history" id="historyBox"></div>
+  </section>
+
+</div>
+
+<footer>Local demo — all actions are simulated in your browser.</footer>
+
+<!-- Background Music (autoplay + loop). Put music.m4a in same folder -->
+<audio id="bgMusic" src="music.m4a" loop></audio>
+
+<script>
+/* ---------- state ---------- */
+const plans = [
+  {loss:3000, price:299},
+  {loss:5000, price:399},
+  {loss:10000, price:499},
+  {loss:25000, price:899},
+  {loss:50000, price:1599},
+  {loss:100000, price:2499}
+];
+
+let currentPlan = 3000;
+let currentDeposit = 300;
+let balance = 0;
+let level = 1;
+let currentBet = 0;
+let history = [];
+
+/* ---------- DOM refs ---------- */
+const plansList = document.getElementById('plansList');
+const qrImg = document.getElementById('qrImg');
+const userAmount = document.getElementById('userAmount');
+const userStatus = document.getElementById('userStatus');
+const targetRange = document.getElementById('targetRange');
+const balanceVal = document.getElementById('balanceVal');
+const historyBox = document.getElementById('historyBox');
+const predictionText = document.getElementById('predictionText');
+const bgMusic = document.getElementById('bgMusic');
+
+/* ---------- render plans ---------- */
+function renderPlans(){
+  plansList.innerHTML = '';
+  plans.forEach(p=>{
+    const deposit = Math.ceil(p.loss * 0.10);
+    const d = document.createElement('div');
+    d.className = 'plan';
+    d.innerHTML = `<b>${p.loss} Loss</b>
+      <div class="small">Plan price: ₹${p.price}</div>
+      <div style="margin-top:8px">Deposit (10%): <b>₹${deposit}</b></div>
+      <div style="margin-top:10px"><button class="btn" onclick="choosePlan(${p.loss},${deposit})">Choose plan</button></div>`;
+    plansList.appendChild(d);
+  });
+}
+
+/* ---------- navigation ---------- */
+function showScreen(id){
+  document.getElementById('screen-dashboard').classList.add('hidden');
+  document.getElementById('screen-user').classList.add('hidden');
+  document.getElementById('screen-access').classList.add('hidden');
+  if(id === 'dashboard') document.getElementById('screen-dashboard').classList.remove('hidden');
+  if(id === 'user') document.getElementById('screen-user').classList.remove('hidden');
+  if(id === 'access') document.getElementById('screen-access').classList.remove('hidden');
+}
+function goDashboard(){ showScreen('dashboard'); }
+
+/* ---------- choose plan ---------- */
+function choosePlan(planLoss, deposit){
+  currentPlan = planLoss;
+  currentDeposit = deposit;
+  openUserScreen();
+}
+function openUserScreen(){
+  showScreen('user');
+  userAmount.innerText = '₹' + currentDeposit;
+  // QR image is local file "your-qr.png" already in folder; if you prefer dynamic UPI link, change src.
+  qrImg.src = 'your-qr.png';
+  document.getElementById('utrInput').value = '';
+  document.getElementById('fileUpload').value = '';
+  userStatus.classList.add('hidden');
+}
+
+/* ---------- Confirm Payment (demo: 10s check -> success -> open hack) ---------- */
+function confirmPayment(){
+  const utr = document.getElementById('utrInput').value.trim();
+  if(!/^[0-9]{12}$/.test(utr)){ alert('Enter valid 12-digit UTR'); return; }
+  const file = document.getElementById('fileUpload').files[0];
+  if(!file){ alert('Please upload an image file'); return; }
+
+  userStatus.classList.remove('hidden');
+  userStatus.innerText = '⏳ Payment Checking...';
+
+  // try to start music (some browsers require user interaction)
+  try { bgMusic.play().catch(()=>{}); } catch(e){}
+
+  setTimeout(()=>{
+    userStatus.innerText = '✅ Payment Successful';
+    // short delay then show hack panel
+    setTimeout(()=>{
+      // initialize hack state then show
+      initAccessState();
+      showScreen('access');
+      // ensure music is playing
+      try { bgMusic.play().catch(()=>{}); } catch(e){}
+    }, 1200);
+  }, 10000);
+}
+
+/* ---------- hack state ---------- */
+function initAccessState(){
+  balance = currentDeposit || Math.max(1, Math.round(currentPlan * 0.10));
+  level = 1; currentBet = 0; history = [];
+  updateAccessUI();
+}
+
+/* ---------- bet calc ---------- */
+function calcBet(){
+  if(level === 1) return Math.max(1, Math.round(balance * 0.15));
+  if(level === 2) return Math.max(1, Math.round(balance * 0.30));
+  if(level === 3) return Math.max(1, Math.round(balance * 0.55));
+  return 0;
+}
+
+/* ---------- prediction ---------- */
+function getPrediction(){
+  const p = document.getElementById('periodInput').value.trim();
+  if(!/^[0-9]{3}$/.test(p)){ alert('Enter last 3 digits (3 digits)'); return; }
+  currentBet = calcBet();
+  const pred = Math.random() < 0.5 ? 'BIG' : 'SMALL';
+  predictionText.innerText = `Period ${p}: Prediction = ${pred} • Bet = ₹${currentBet} (Level ${level})`;
+}
+
+/* ---------- win / loss ---------- */
+function markWin(){
+  if(currentBet <= 0){ alert('No active bet — click Get Prediction first'); return; }
+  balance = Math.round(balance + currentBet);
+  history.unshift({ time: new Date().toLocaleTimeString(), bet: currentBet, result:'WIN', lvl: level });
+  currentBet = 0; level = 1; updateAccessUI(); checkTargetComplete();
+}
+function markLoss(){
+  if(currentBet <= 0){ alert('No active bet — click Get Prediction first'); return; }
+  balance = Math.max(0, balance - currentBet);
+  history.unshift({ time: new Date().toLocaleTimeString(), bet: currentBet, result:'LOSS', lvl: level });
+  if(level < 3) level++; else level = 1;
+  currentBet = 0; updateAccessUI(); checkTargetComplete();
+}
+
+/* ---------- UI update ---------- */
+function updateAccessUI(){
+  balanceVal.innerText = balance;
+  targetRange.innerText = `${currentDeposit} to ${currentPlan}`;
+  historyBox.innerHTML = history.map(h=>`${h.time} — Bet ₹${h.bet} — ${h.result} (L${h.lvl})`).join('<br>');
+  // keep previous predictionText unchanged
+}
+
+/* ---------- reset ---------- */
+function resetSession(){
+  if(!confirm('Reset this session?')) return;
+  initAccessState();
+  document.getElementById('periodInput').value = '';
+  predictionText.innerText = '';
+}
+
+/* ---------- completion ---------- */
+function checkTargetComplete(){
+  if(balance >= currentPlan){
+    setTimeout(()=> {
+      alert('🎉 Congratulations — Your Target is Complete!');
+      showScreen('dashboard');
+    }, 200);
+  }
+}
+
+/* ---------- init ---------- */
+renderPlans();
+showScreen('dashboard');
+</script>
+</body>
+</html>
