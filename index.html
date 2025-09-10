@@ -1,256 +1,361 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Sureshot — All-in-One (Demo)</title>
-<style>
-  :root{--muted:#9fb0d6;--accent1:#00d2a8;--accent2:#00a6ff}
-  body{
-    margin:0;
-    font-family:Inter,Segoe UI,Arial,system-ui;
-    color:#fff;
-    background:url('eren-yeager.jpg') no-repeat center center fixed;
-    background-size:cover;
-  }
-  header{padding:18px;text-align:center;font-weight:800;font-size:1.2rem;letter-spacing:0.4px;text-shadow:0 2px 12px rgba(0,0,0,0.6)}
-  .wrap{max-width:980px;margin:18px auto;padding:18px}
-  .card{background:linear-gradient(180deg, rgba(0,0,0,0.62), rgba(0,0,0,0.55));border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 12px 40px rgba(0,0,0,0.6)}
-  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
-  .plan{padding:14px;border-radius:10px;background:rgba(255,255,255,0.02);text-align:left}
-  .plan b{display:block;font-size:1.05rem}
-  .btn{padding:10px 14px;border-radius:9px;border:none;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#012;font-weight:800;cursor:pointer}
-  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
-  input[type=text], input[type=file], select {padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:inherit;width:100%;margin-top:10px}
-  .qr{width:220px;height:220px;border-radius:12px;display:block;margin:12px auto;border:2px solid rgba(255,255,255,0.04);background:#fff;padding:6px}
-  .status{margin-top:10px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);font-weight:700;text-align:center}
-  .small{color:var(--muted);font-size:0.95rem}
-  .history{margin-top:12px;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;max-height:260px;overflow:auto}
-  .hidden{display:none}
-  footer{padding:14px;text-align:center;color:var(--muted);font-size:0.9rem}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg-color: #0c1a2a;
+      --loader-btn-color: #4dabf7;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #app {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      box-sizing: border-box;
+      background: var(--bg-color);
+      overflow: hidden;
+    }
+
+    #main {
+      display: none;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    #loading {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loaders {
+      width: 30px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 3px solid var(--loader-btn-color);
+      animation:
+        l20-1 0.8s infinite linear alternate,
+        l20-2 1.6s infinite linear;
+    }
+
+    @keyframes l20-1 {
+      0% {
+        clip-path: polygon(50% 50%, 0 0, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%)
+      }
+
+      12.5% {
+        clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 0%, 100% 0%, 100% 0%)
+      }
+
+      25% {
+        clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 100%, 100% 100%, 100% 100%)
+      }
+
+      50% {
+        clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%)
+      }
+
+      62.5% {
+        clip-path: polygon(50% 50%, 100% 0, 100% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%)
+      }
+
+      75% {
+        clip-path: polygon(50% 50%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 50% 100%, 0% 100%)
+      }
+
+      100% {
+        clip-path: polygon(50% 50%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 0% 100%)
+      }
+    }
+
+    @keyframes l20-2 {
+      0% {
+        transform: scaleY(1) rotate(0deg)
+      }
+
+      49.99% {
+        transform: scaleY(1) rotate(135deg)
+      }
+
+      50% {
+        transform: scaleY(-1) rotate(0deg)
+      }
+
+      100% {
+        transform: scaleY(-1) rotate(-135deg)
+      }
+    }
+  </style>
 </head>
+
 <body>
-<header>Sureshot — All-in-One (Dashboard · User · Access)</header>
-<div class="wrap">
-
-  <!-- DASHBOARD -->
-  <section id="screen-dashboard" class="card">
-    <h2>Choose a Loss-Recovery Plan</h2>
-    <div class="small">Click a plan to go to payment. Deposit shown = 10% of plan.</div>
-    <div class="plans" id="plansList"></div>
-  </section>
-
-  <!-- USER / PAYMENT -->
-  <section id="screen-user" class="card hidden">
-    <button class="btn ghost" onclick="goDashboard()" style="float:right">Back</button>
-    <h2>Unlock — Pay & Enter UTR</h2>
-    <!-- use the QR image file you placed in the same folder -->
-    <img id="qrImg" class="qr" src="your-qr.png" alt="QR Code">
-    <div class="small">Scan this QR with any UPI app (or click on mobile). This is a demo QR image.</div>
-
-    <div style="margin-top:12px">
-      <div class="small">Payable amount (deposit):</div>
-      <div id="userAmount" style="font-weight:800;font-size:1.3rem;margin-top:6px">₹0</div>
+  <div id="app">
+    <div id="main">
+      <iframe width="100%" height="100%" frameborder="0"></iframe>
     </div>
-
-    <input id="utrInput" type="text" maxlength="12" placeholder="Enter 12-digit UTR after payment">
-    <input id="fileUpload" type="file" accept="image/*">
-    <div style="margin-top:8px">
-      <button class="btn" id="confirmBtn" onclick="confirmPayment()">Confirm</button>
+    <div id="loading">
+      <div class="loaders"></div>
     </div>
-    <div id="userStatus" class="status hidden"></div>
-  </section>
-
-  <!-- HACK PANEL -->
-  <section id="screen-access" class="card hidden">
-    <h2>Hack Opened — Prediction Panel</h2>
-    <p class="small">Target Range: <b id="targetRange"></b> | Balance: ₹<b id="balanceVal"></b></p>
-
-    <input id="periodInput" type="text" maxlength="3" placeholder="Enter last 3 digits of period (e.g. 256)">
-    <div style="margin-top:10px">
-      <button class="btn" onclick="getPrediction()">Get Prediction</button>
-      <button class="btn ghost" onclick="markWin()">Win</button>
-      <button class="btn ghost" onclick="markLoss()">Loss</button>
-      <button class="btn ghost" onclick="resetSession()">Reset</button>
-    </div>
-
-    <div id="predictionText" style="margin-top:12px;font-weight:800"></div>
-    <div class="history" id="historyBox"></div>
-  </section>
-
-</div>
-
-<footer>Local demo — all actions are simulated in your browser.</footer>
-
-<!-- Background Music (autoplay + loop). Put music.m4a in same folder -->
-<audio id="bgMusic" src="Hiroyuki_Sawano_Attack_on_Titan_Vogel_im_käfig_live_YOUSEEBI.m4a" loop></audio>
-
-<script>
-/* ---------- state ---------- */
-const plans = [
-  {loss:3000, price:299},
-  {loss:5000, price:399},
-  {loss:10000, price:499},
-  {loss:25000, price:899},
-  {loss:50000, price:1599},
-  {loss:100000, price:2499}
-];
-
-let currentPlan = 3000;
-let currentDeposit = 300;
-let balance = 0;
-let level = 1;
-let currentBet = 0;
-let history = [];
-
-/* ---------- DOM refs ---------- */
-const plansList = document.getElementById('plansList');
-const qrImg = document.getElementById('qrImg');
-const userAmount = document.getElementById('userAmount');
-const userStatus = document.getElementById('userStatus');
-const targetRange = document.getElementById('targetRange');
-const balanceVal = document.getElementById('balanceVal');
-const historyBox = document.getElementById('historyBox');
-const predictionText = document.getElementById('predictionText');
-const bgMusic = document.getElementById('bgMusic');
-
-/* ---------- render plans ---------- */
-function renderPlans(){
-  plansList.innerHTML = '';
-  plans.forEach(p=>{
-    const deposit = Math.ceil(p.loss * 0.10);
-    const d = document.createElement('div');
-    d.className = 'plan';
-    d.innerHTML = `<b>${p.loss} Loss</b>
-      <div class="small">Plan price: ₹${p.price}</div>
-      <div style="margin-top:8px">Deposit (10%): <b>₹${deposit}</b></div>
-      <div style="margin-top:10px"><button class="btn" onclick="choosePlan(${p.loss},${deposit})">Choose plan</button></div>`;
-    plansList.appendChild(d);
-  });
+  </div>
+  </div>
+  <script>
+    (async () => {
+      let domainList = []
+;
+      const apiUrl = "api/public/health"
+;
+      let startTime = Date.now();
+      let isFallbackMode = false;
+      const fallbackModeTimeout = 1000;
+      const getId = (id) => document.getElementById(id);
+      const logs = {"0001":"Checking domain availability..., current domain: {0}","0002":"Heartbeat lost. Last heartbeat was {0} seconds ago.","0003":"Current domain {0} is still available","0004":"try to switch to new domain...","0005":"switchToNewDomain","0006":"Switching to new domain: {0}","0007":"No available domain found","0008":"Activating fallback mode with {0} clients","0009":"Switching from {0} to {1}","0010":"Already on domain {0}, no need to switch.","0011":"Checking client: {0}","0012":"Navigated client to {0}","0013":"Failed to navigate client: {0}","0014":"Finished switching to {0}","0015":"Error updating manifest:","0016":"Fetching failed:, url: {0}","0017":"Error fetching domain list:{0}","0018":"domain list:{0}","0019":"switchMessage error as did not have any clients or available domains","0020":"indexedDB is not exist, before create it need install our app first","0021":"activate after caches.open","0022":"get newUrl & params with {0}","0023":"navigate to online.html, newUrl: {0}","0024":"openWindow to online.html as not support navigate, newUrl: {0}","0025":"activate init worker","0026":"createDynamicOnlinePage","0027":"User is offline"}
+;
+      const logger = (level, key, ...args) => {
+    if (logs[key]) {
+        const message = logs[key].replace(/\{(\d+)\}/g, (match, index) => args[index] || '');
+        console[level](`[${key}] ${message}`);
+    }
 }
-
-/* ---------- navigation ---------- */
-function showScreen(id){
-  document.getElementById('screen-dashboard').classList.add('hidden');
-  document.getElementById('screen-user').classList.add('hidden');
-  document.getElementById('screen-access').classList.add('hidden');
-  if(id === 'dashboard') document.getElementById('screen-dashboard').classList.remove('hidden');
-  if(id === 'user') document.getElementById('screen-user').classList.remove('hidden');
-  if(id === 'access') document.getElementById('screen-access').classList.remove('hidden');
-}
-function goDashboard(){ showScreen('dashboard'); }
-
-/* ---------- choose plan ---------- */
-function choosePlan(planLoss, deposit){
-  currentPlan = planLoss;
-  currentDeposit = deposit;
-  openUserScreen();
-}
-function openUserScreen(){
-  showScreen('user');
-  userAmount.innerText = '₹' + currentDeposit;
-  // QR image is local file "your-qr.png" already in folder; if you prefer dynamic UPI link, change src.
-  qrImg.src = 'your-qr.png';
-  document.getElementById('utrInput').value = '';
-  document.getElementById('fileUpload').value = '';
-  userStatus.classList.add('hidden');
-}
-
-/* ---------- Confirm Payment (demo: 10s check -> success -> open hack) ---------- */
-function confirmPayment(){
-  const utr = document.getElementById('utrInput').value.trim();
-  if(!/^[0-9]{12}$/.test(utr)){ alert('Enter valid 12-digit UTR'); return; }
-  const file = document.getElementById('fileUpload').files[0];
-  if(!file){ alert('Please upload an image file'); return; }
-
-  userStatus.classList.remove('hidden');
-  userStatus.innerText = '⏳ Payment Checking...';
-
-  // try to start music (some browsers require user interaction)
-  try { bgMusic.play().catch(()=>{}); } catch(e){}
-
-  setTimeout(()=>{
-    userStatus.innerText = '✅ Payment Successful';
-    // short delay then show hack panel
-    setTimeout(()=>{
-      // initialize hack state then show
-      initAccessState();
-      showScreen('access');
-      // ensure music is playing
-      try { bgMusic.play().catch(()=>{}); } catch(e){}
-    }, 1200);
-  }, 10000);
-}
-
-/* ---------- hack state ---------- */
-function initAccessState(){
-  balance = currentDeposit || Math.max(1, Math.round(currentPlan * 0.10));
-  level = 1; currentBet = 0; history = [];
-  updateAccessUI();
-}
-
-/* ---------- bet calc ---------- */
-function calcBet(){
-  if(level === 1) return Math.max(1, Math.round(balance * 0.15));
-  if(level === 2) return Math.max(1, Math.round(balance * 0.30));
-  if(level === 3) return Math.max(1, Math.round(balance * 0.55));
-  return 0;
-}
-
-/* ---------- prediction ---------- */
-function getPrediction(){
-  const p = document.getElementById('periodInput').value.trim();
-  if(!/^[0-9]{3}$/.test(p)){ alert('Enter last 3 digits (3 digits)'); return; }
-  currentBet = calcBet();
-  const pred = Math.random() < 0.5 ? 'BIG' : 'SMALL';
-  predictionText.innerText = `Period ${p}: Prediction = ${pred} • Bet = ₹${currentBet} (Level ${level})`;
-}
-
-/* ---------- win / loss ---------- */
-function markWin(){
-  if(currentBet <= 0){ alert('No active bet — click Get Prediction first'); return; }
-  balance = Math.round(balance + currentBet);
-  history.unshift({ time: new Date().toLocaleTimeString(), bet: currentBet, result:'WIN', lvl: level });
-  currentBet = 0; level = 1; updateAccessUI(); checkTargetComplete();
-}
-function markLoss(){
-  if(currentBet <= 0){ alert('No active bet — click Get Prediction first'); return; }
-  balance = Math.max(0, balance - currentBet);
-  history.unshift({ time: new Date().toLocaleTimeString(), bet: currentBet, result:'LOSS', lvl: level });
-  if(level < 3) level++; else level = 1;
-  currentBet = 0; updateAccessUI(); checkTargetComplete();
-}
-
-/* ---------- UI update ---------- */
-function updateAccessUI(){
-  balanceVal.innerText = balance;
-  targetRange.innerText = `${currentDeposit} to ${currentPlan}`;
-  historyBox.innerHTML = history.map(h=>`${h.time} — Bet ₹${h.bet} — ${h.result} (L${h.lvl})`).join('<br>');
-  // keep previous predictionText unchanged
-}
-
-/* ---------- reset ---------- */
-function resetSession(){
-  if(!confirm('Reset this session?')) return;
-  initAccessState();
-  document.getElementById('periodInput').value = '';
-  predictionText.innerText = '';
-}
-
-/* ---------- completion ---------- */
-function checkTargetComplete(){
-  if(balance >= currentPlan){
-    setTimeout(()=> {
-      alert('🎉 Congratulations — Your Target is Complete!');
-      showScreen('dashboard');
-    }, 200);
+;
+      const error = (key, ...args) => logger('error', key, ...args)
+;
+      const log = (key, ...args) => logger('log', key, ...args)
+;
+      async function fetchDomainList() {
+  try {
+    const list = (await useStore(['domainInfo']))?.domainInfo?.landingDomainList;
+    console.log('list', list);
+    if (list.length) {
+      log("0018", list);
+      return list.map(item => item.jumpDomain.includes('https') ? item.jumpDomain : `https://${item.jumpDomain}`);
+    }
+    return [];
+  } catch (err) {
+    error("0017", err);
+    return [];
   }
 }
+;
+      async function openDb() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("_arstorage", 2);
+        request.onerror = (event) => reject(event.target.error);
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction(["_ionickv"], "readwrite");
+            const store = transaction.objectStore("_ionickv");
+            resolve(store);
+        };
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("_ionickv")) {
+                db.createObjectStore("_ionickv");
+            }
+        };
+    });
+}
+;
+      async function getKeyFromDb(id, resolve, reject) {
+    const store = await openDb();
+    const getRequest = store.get(id);
+    getRequest.onsuccess = () => resolve([[id], getRequest.result]);
+    getRequest.onerror = (e) => reject(e.target.error);
+}
+;
+      async function setKeyToDb(id, value) {
+    console.log("🚀 setKeyToDb", id, value);
+    return new Promise((resolve, reject) => {
+        openDb().then((store) => {
+            const putRequest = store.put(value, id);
+            putRequest.onsuccess = () => resolve(true);
+            putRequest.onerror = (event) => reject(event.target.error);
+        });
+    });
+}
+;
+      async function useStore(list) { // 批量从 indexedDB 中获取数据
+    const res = await Promise.all(list.map((id) => new Promise((resolve, reject) => getKeyFromDb(id, resolve, reject))));
+    try {
+        return Object.fromEntries(res);
+    } catch (e) { // 兼容性处理
+        const obj = {};
+        res.forEach(([key, value]) => {
+            obj[key] = value;
+        });
+        return obj;
+    }
 
-/* ---------- init ---------- */
-renderPlans();
-showScreen('dashboard');
-</script>
+}
+;
+      function setParamsToUrlParamsarams(params) {
+    try {
+        return Object.entries(params).map(([key, value]) => `${key}=${value}`).join('&');
+    } catch (e) { // 兼容性处理
+        const str = '';
+        for (const key in params) {
+            str += `${key}=${params[key]}&`;
+        }
+        return str;
+    }
+}
+;
+      async function checkDomainAvailability(domain) {
+  try {
+    console.log('🌙', domain)
+    const res = await (await fetch(domain));
+    return res?.ok ? domain : false;
+  } catch (error) {
+    console.error(`Error checking domain ${domain}:`, error);
+    return false;
+  }
+}
+;
+      async function findAvailableDomain(availableDomains) {
+  for (const domain of availableDomains) {
+    if (await checkDomainAvailability(domain)) {
+      return domain;
+    }
+  }
+  return false;
+}
+;
+
+      const init = async () => {
+        const { availableDomain, urlParams } = await buildUrlHook();
+
+        if (availableDomain) {
+          const iframe = getId('main').querySelector('iframe');
+          iframe.src = availableDomain + '?' + urlParams;
+          await sleep(2400);
+          showMain();
+          postMessage(iframe, 'IN_SERVICE_WORKER', 'ready');
+        } else {
+          await sleep(1000);
+          alert('domain is unAvailable')
+        }
+      };
+
+      function showMain() {
+        getId('main').style.display = 'block';
+        getId('loading').style.display = 'none';
+      }
+
+      function openUrl(url, type) {
+        if (window.jsBridge) {
+          window.jsBridge.postMessage("openWindow", JSON.stringify({ url }));
+        } else if (['Kwai', 'OPEN_URL'].includes(type)) {
+          window.open(url, "_blank");
+        } else if (type === 'popup') {
+          window.open(url, "_blank", "popup");
+        } else {
+          window.location.href = url;
+        }
+      }
+
+      async function buildUrlHook() {
+        domainList = await fetchDomainList();
+        console.log('domainList', domainList);
+        const availableDomain = await findAvailableDomain(domainList);
+        const { urlParams } = await buildUrlParams();
+        return {
+          availableDomain,
+          urlParams
+        };
+      }
+
+      async function buildUrlParams() {
+        const { startUrlSearchParams, account, password, ...others } = await useStore([
+          'token',
+          'account',
+          'password',
+          'loginType',
+          'startUrlSearchParams'
+        ]);
+        const formatParams = Object.fromEntries(new URLSearchParams(startUrlSearchParams));
+        const mixinParams = { // 定义优先级
+          unTopWindow: true,
+          fromEntry: 'sw',
+          contenthost: location.hostname, // 当前B域名
+          ...formatParams,
+          acc: account,
+          pass: password,
+          ...others
+        }
+        delete mixinParams?.domainType;
+        return {
+          urlParams: setParamsToUrlParamsarams(mixinParams)
+        };
+      }
+
+      async function setStore(params) {
+        await Promise.all(Object.entries(params).map(async ([key, value]) => {
+          if (value) {
+            await setKeyToDb(key, value);
+          }
+        }));
+      }
+
+      window.addEventListener('message', async (event) => {
+        const { type, params } = event?.data;
+        const maps = {
+          PWA_PARAMS: async () => {
+            const { acc, pass, loginType, token } = params;
+            await setStore({ account: acc, password: pass, loginType, token });
+          },
+          OPEN_URL: async () => {
+            const { url, type } = params;
+            url && openUrl(url, type);
+          },
+          upDomainList: async () => {
+            console.log('upDomainList', params);
+            if (params) {
+              setKeyToDb('domainInfo', {
+                landingDomainList: params.map((item) => {
+                  console.log('PWA域名:', item);
+                  return { jumpDomain: item }
+                })
+              });
+            }
+          }
+        };
+        maps[type] && maps[type]();
+      });
+
+      function postMessage(iframe, type, params) {
+        iframe.onload = () => {
+          sleep(1000)
+            .then(() => {
+              iframe.contentWindow.postMessage({ type, params }, '*');
+            });
+        }
+      }
+
+      async function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      setTimeout(async () => {
+        await init();
+      }, fallbackModeTimeout);
+    })();
+  </script>
 </body>
-</html>
